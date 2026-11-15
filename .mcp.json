@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "performance-qa": {
+      "command": "uvx",
+      "args": [
+        "k11-performance-qa-mcp"
+      ]
+    }
+  }
+}

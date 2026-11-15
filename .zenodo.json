@@ -1,0 +1,37 @@
+{
+  "title": "k11 Performance QA MCP Server",
+  "upload_type": "software",
+  "description": "<p>MCP server and CI tool for load and performance testing as release evidence: API functional test flows reused as load scenarios, per-endpoint latency percentiles, error rates and throughput, SLO checks, and regressions against a baseline that require a tolerance, a minimum delta and statistical significance (Mann-Whitney U), with k6 or a builtin engine and guardrails that keep load away from production.</p><p>Source code: <a href=\"https://github.com/K11-Software-Solutions/k11techlab-performance-qa-mcp\">https://github.com/K11-Software-Solutions/k11techlab-performance-qa-mcp</a></p>",
+  "creators": [
+    {
+      "name": "Jadhav, Kavita",
+      "orcid": "0009-0009-8507-4976",
+      "affiliation": "K11 Software Solutions"
+    }
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "keywords": [
+    "performance testing",
+    "load testing",
+    "k6",
+    "SLO",
+    "latency",
+    "regression detection",
+    "model context protocol",
+    "quality engineering"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/K11-Software-Solutions/k11techlab-performance-qa-mcp",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "10.18535/ijecs/v15i06.5563",
+      "relation": "isSupplementTo",
+      "scheme": "doi",
+      "resource_type": "publication-article"
+    }
+  ]
+}

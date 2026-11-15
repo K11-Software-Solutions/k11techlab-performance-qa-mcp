@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.K11-Software-Solutions/performance-qa",
+  "title": "k11 Performance QA",
+  "description": "Load tests from your API flows: latency SLOs and significant regressions as release evidence.",
+  "websiteUrl": "https://github.com/K11-Software-Solutions/k11techlab-performance-qa-mcp",
+  "repository": {
+    "url": "https://github.com/K11-Software-Solutions/k11techlab-performance-qa-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "k11-performance-qa-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "QA_MCP_ROOT",
+          "description": "Folder with tests/api/, .qa-mcp/api-test.yaml and .qa-mcp/perf.yaml",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "K6_PATH",
+          "description": "Path to the k6 binary, if it isn't on PATH (optional; the builtin engine is used without k6)",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

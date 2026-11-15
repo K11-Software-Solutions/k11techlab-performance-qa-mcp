@@ -1,0 +1,15 @@
+{
+  "name": "k11-performance-qa",
+  "description": "k11 Performance QA: load tests from your API flows, SLOs and statistically significant regressions as release evidence.",
+  "owner": {
+    "name": "K11 Software Solutions",
+    "url": "https://k11softwaresolutions.com"
+  },
+  "plugins": [
+    {
+      "name": "performance-qa",
+      "source": "./",
+      "description": "Load tests from your API flows, SLOs and regressions against a baseline, with guardrails."
+    }
+  ]
+}

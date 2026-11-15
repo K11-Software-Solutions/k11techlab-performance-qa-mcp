@@ -1,0 +1,58 @@
+# Example workflow: load-test every pull request against the baseline from main.
+# Copy to .github/workflows/perf-tests.yml and adjust how your API starts.
+name: Performance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  perf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: grafana/setup-k6-action@v1        # optional: without k6 the builtin engine runs
+      - run: pip install k11-performance-qa-mcp
+
+      - name: Start the API under test
+        run: |
+          # e.g. docker compose up -d && ./scripts/wait-for-api.sh
+          echo "start your service here"
+
+      # On main: refresh the baseline and keep it as an artifact (or commit it).
+      - name: Save baseline (main)
+        if: github.ref == 'refs/heads/main'
+        run: k11-performance-qa-mcp baseline --env ci
+        env:
+          API_URL: http://localhost:8080
+          API_TOKEN: ${{ secrets.TEST_API_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          name: perf-baseline
+          path: .qa-mcp/perf-baseline/
+
+      # On pull requests: compare with the baseline; the Release Gate reads perf-report.json.
+      - uses: dawidd6/action-download-artifact@v6
+        if: github.event_name == 'pull_request'
+        with:
+          workflow: perf-tests.yml
+          branch: main
+          name: perf-baseline
+          path: .qa-mcp/perf-baseline/
+          if_no_artifact_found: warn
+      - name: Load test
+        if: github.event_name == 'pull_request'
+        run: k11-performance-qa-mcp run --env ci --fail-on any
+        env:
+          API_URL: http://localhost:8080
+          API_TOKEN: ${{ secrets.TEST_API_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-report
+          path: .qa-mcp/perf-report/

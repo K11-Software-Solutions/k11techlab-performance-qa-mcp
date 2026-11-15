@@ -1,0 +1,17 @@
+# k11 Performance QA demo: environments and auth come from api-test.yaml
+environment: local
+engine: auto
+profile: { vus: 4, duration: 8s, ramp_up: 1s, think_time_ms: 20 }
+
+scenarios:
+  browse:
+    flows:
+      - { flow: tests/api/view_order.yaml, weight: 3 }
+      - tests/api/cancel_order.yaml
+
+slos:
+  "GET /orders/{id}": { p95_ms: 250, error_rate: 0.01 }
+  "*": { p95_ms: 800, error_rate: 0.02 }
+
+regression: { metric: p95, tolerance_pct: 15, min_delta_ms: 15, min_samples: 30, p_value: 0.01 }
+guardrails: { max_vus: 20, max_duration: 2m, abort_error_rate: 0.5, abort_min_requests: 40 }

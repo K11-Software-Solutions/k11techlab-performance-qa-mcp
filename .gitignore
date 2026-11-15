@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.tmp*
+*.db
+.qa-mcp/perf-report/
+.qa-mcp/api-test-report/
