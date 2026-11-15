@@ -29,11 +29,13 @@ def test_baseline_then_regression_is_caught(project, shop):
 
 
 def test_no_change_is_not_a_regression(project, shop):
-    set_perf(project, regression={"tolerance_pct": 100, "min_delta_ms": 100})
+    # this test is about regressions only: SLOs are loose so a busy machine can't fail it
+    set_perf(project, regression={"tolerance_pct": 100, "min_delta_ms": 100},
+             slos={"*": {"p95_ms": 10000, "error_rate": 0.5}})
     run(project, "browse", None, FAST, "builtin", save_as_baseline=True)
     doc = run(project, "browse", None, FAST, "builtin")["report"]
-    assert doc["comparison"]["regressions"] == []
-    assert doc["summary"]["verdict"] == "pass"
+    assert doc["comparison"]["regressions"] == [], doc["findings"]
+    assert doc["summary"]["verdict"] == "pass", doc["findings"]
 
 
 def test_server_errors_and_slo_breach_under_load(project, shop):
