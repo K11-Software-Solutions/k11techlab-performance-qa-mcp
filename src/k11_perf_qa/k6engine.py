@@ -261,7 +261,7 @@ def run_k6(api_cfg: ApiConfig, perf: PerfConfig, flows: list[ScenarioFlow], env_
             (work / "fixtures.json").write_text(json.dumps(fixtures), "utf8")
             env_vars["K11_PERF_FIXTURES"] = str(work / "fixtures.json")
         raw = work / "raw.json"
-        cmd = [k6_path, "run", "--quiet", "--no-summary", "--out", f"json={raw}", str(script)]
+        cmd = [k6_path, "run", "--quiet", "--out", f"json={raw}", str(script)]
         started = datetime.now(timezone.utc)
         proc = subprocess.Popen(cmd, cwd=work, env=env_vars, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 text=True, encoding="utf-8", errors="replace")
