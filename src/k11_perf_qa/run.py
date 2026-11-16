@@ -1,4 +1,4 @@
-"""One load test, end to end: resolve the scenario, check guardrails, run, analyse, report."""
+"""One load test (or imported JMeter results), end to end: run, analyse, compare, report."""
 
 from __future__ import annotations
 
@@ -36,6 +36,26 @@ def run(root: Path, scenario: str | None = None, environment: str | None = None,
     else:
         res = run_builtin(api_cfg, perf, flows, env_name, profile, scen_name, stop)
 
+    return finish(root, perf, res, compare_baseline, report_dir, save_as_baseline)
+
+
+def import_results(root: Path, path: str, scenario: str | None = None, environment: str | None = None,
+                   compare_baseline: bool = True, report_dir: str = ".qa-mcp/perf-report",
+                   save_as_baseline: bool = False) -> dict:
+    """Analyse a JMeter results file (JTL, CSV or XML) inside the project like a run of our own."""
+    from k11_contract_qa.spec import inside
+
+    from .jmeter import load_jtl
+
+    root = Path(root).resolve()
+    perf = perfconfig.load(root)
+    res = load_jtl(inside(root, path), scenario or "jmeter", environment or perf.environment or "default")
+    return finish(root, perf, res, compare_baseline, report_dir, save_as_baseline)
+
+
+def finish(root: Path, perf: perfconfig.PerfConfig, res: RunResult, compare_baseline: bool, report_dir: str,
+           save_as_baseline: bool) -> dict:
+    scen_name, env_name = res.scenario, res.environment
     eps = analyze.endpoint_metrics(res)
     total = analyze.overall(res, eps)
     slo_results = analyze.check_slos(eps, perf.slos) if res.status in ("completed", "aborted") else []

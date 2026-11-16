@@ -115,6 +115,21 @@ def create_server() -> FastMCP:
         out = run(root, scenario, environment, {"vus": vus, "duration": duration}, None, save_as_baseline=True)
         return {"saved": out.get("baseline_saved"), "error": out.get("baseline_error"), **_brief(out["report"])}
 
+    @mcp.tool(title="Import JMeter results")
+    def import_jmeter_results(path: str, scenario: Optional[str] = None, environment: Optional[str] = None,
+                              compare_baseline: bool = True, save_as_baseline: bool = False) -> dict:
+        """Analyse an existing JMeter results file (.jtl, CSV with a header row or XML) inside the project exactly like a
+        run of our own: per-endpoint latency (endpoints are sampler labels; name them 'GET /orders/{id}'), SLOs, the
+        baseline comparison and findings, written to .qa-mcp/perf-report/ for the Release Gate. scenario defaults to
+        'jmeter'; use the same scenario and environment for the baseline and later imports. save_as_baseline=True
+        stores these results as the baseline instead of comparing."""
+        from .run import import_results
+
+        out = import_results(project_root(), path, scenario, environment, compare_baseline,
+                             save_as_baseline=save_as_baseline)
+        return {**_brief(out["report"]), "paths": out["paths"],
+                **({"baseline_saved": out.get("baseline_saved")} if save_as_baseline else {})}
+
     @mcp.tool(title="Get report")
     def get_report(endpoint: Optional[str] = None) -> dict:
         """The last run's report. With endpoint ('GET /orders/{id}'), that endpoint's full detail: latency

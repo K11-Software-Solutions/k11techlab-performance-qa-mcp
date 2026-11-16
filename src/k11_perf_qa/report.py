@@ -48,9 +48,12 @@ def samples_doc(res, eps) -> dict:
 def to_markdown(doc: dict) -> str:
     s = doc["summary"]
     v = s["verdict"]
+    prof = doc["profile"]
+    how = (f"imported from JMeter results `{prof.get('source')}` ({prof.get('vus') or '?'} threads over {prof['duration_s']:g}s)"
+           if doc["engine"] == "jmeter" else
+           f"{doc['engine']} engine: {prof['vus']} virtual users for {prof['duration_s']:g}s")
     L = [f"## Performance: {ICON[v]} {'passed' if v == 'pass' else 'needs attention'}", "",
-         f"Scenario **{doc['scenario']}** on **{doc['environment']}** ({doc['engine']} engine): "
-         f"{doc['profile']['vus']} virtual users for {doc['profile']['duration_s']:g}s, "
+         f"Scenario **{doc['scenario']}** on **{doc['environment']}** ({how}), "
          f"**{s['requests']} requests** at {s['rps']} req/s, error rate {s['error_rate']:.2%}, "
          f"p95 {s['p95']} ms, p99 {s['p99']} ms.", ""]
     if doc["status"] != "completed":

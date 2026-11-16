@@ -17,6 +17,7 @@ Usage:
   k11-performance-qa-mcp run [opts]          run a load test, compare with the baseline, write reports
   k11-performance-qa-mcp baseline [opts]     run a load test and save it as the baseline (do this on main)
   k11-performance-qa-mcp baseline --from-last-run   save the last completed run as the baseline
+  k11-performance-qa-mcp import FILE.jtl     analyse JMeter results (CSV or XML) like a run: SLOs, baseline, report
   k11-performance-qa-mcp init                write a starter .qa-mcp/perf.yaml
   k11-performance-qa-mcp --version
 
@@ -28,6 +29,8 @@ run / baseline options:
   --no-compare         don't compare with the baseline
   --report-dir PATH    default .qa-mcp/perf-report
   --fail-on LEVEL      any (default) | slo (SLOs, 5xx, aborted) | regression (regressions, aborted) | never
+
+import options: --scenario (default jmeter), --env, --no-compare, --save-baseline, --report-dir, --fail-on
 
 The project is QA_MCP_ROOT or the current directory.
 """
@@ -68,10 +71,13 @@ def main(argv: list[str] | None = None) -> int:
         p.write_text(init_text(), "utf8")
         print(f"Wrote {PERF_CONFIG}")
         return 0
-    if cmd not in ("run", "baseline"):
+    if cmd not in ("run", "baseline", "import"):
         print(f"Unknown command: {cmd}\n\n{USAGE}", file=sys.stderr)
         return 2
     p = argparse.ArgumentParser(prog=f"k11-performance-qa-mcp {cmd}")
+    if cmd == "import":
+        p.add_argument("file")
+        p.add_argument("--save-baseline", action="store_true")
     p.add_argument("--scenario")
     p.add_argument("--env")
     p.add_argument("--vus", type=int)
@@ -88,7 +94,8 @@ def main(argv: list[str] | None = None) -> int:
     from k11_api_qa.runner import FlowError
 
     from . import report
-    from .run import run
+    from .jmeter import JtlError
+    from .run import import_results, run
 
     if cmd == "baseline" and a.from_last_run:
         s = root / a.report_dir / "samples.json"
@@ -104,10 +111,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Baseline saved: {path.relative_to(root).as_posix()}")
         return 0
     try:
-        out = run(root, a.scenario, a.env, {"vus": a.vus, "duration": a.duration, "ramp_up": a.ramp_up,
-                                            "max_rps": a.max_rps}, a.engine, not a.no_compare, a.report_dir,
-                  save_as_baseline=(cmd == "baseline"))
-    except (ValueError, FlowError, OSError) as e:
+        if cmd == "import":
+            out = import_results(root, a.file, a.scenario, a.env, not a.no_compare, a.report_dir,
+                                 save_as_baseline=a.save_baseline)
+        else:
+            out = run(root, a.scenario, a.env, {"vus": a.vus, "duration": a.duration, "ramp_up": a.ramp_up,
+                                                "max_rps": a.max_rps}, a.engine, not a.no_compare, a.report_dir,
+                      save_as_baseline=(cmd == "baseline"))
+    except (ValueError, FlowError, JtlError, OSError) as e:
         print(f"{cmd} failed: {e}", file=sys.stderr)
         return 1
     doc = out["report"]
@@ -117,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
           f"Report: {out['paths']['markdown']}")
     for f in doc["findings"]:
         print(f"  - {f['type']}: {f['message']}")
-    if cmd == "baseline":
+    if cmd == "baseline" or (cmd == "import" and a.save_baseline):
         if out.get("baseline_saved"):
             print(f"Baseline saved: {out['baseline_saved']}")
         else:
@@ -130,7 +141,7 @@ def main(argv: list[str] | None = None) -> int:
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf8") as fh:
             fh.write((root / out["paths"]["markdown"]).read_text("utf8") + "\n")
-    if cmd == "baseline":
+    if cmd == "baseline" or (cmd == "import" and a.save_baseline):
         return 0
     return 1 if any(f["type"] in FAIL_ON[a.fail_on] for f in doc["findings"]) else 0
 

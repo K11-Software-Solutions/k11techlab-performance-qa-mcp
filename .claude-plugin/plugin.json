@@ -1,7 +1,7 @@
 {
   "name": "performance-qa",
   "version": "0.1.0",
-  "description": "Load and performance testing from Claude Code: your API flows as load scenarios, per-endpoint latency and SLOs, statistically significant regressions against a baseline, with guardrails and evidence for release decisions.",
+  "description": "Load and performance testing from Claude Code: your API flows as load scenarios (or your JMeter results), per-endpoint latency and SLOs, statistically significant regressions against a baseline, with guardrails and evidence for release decisions.",
   "author": {
     "name": "Kavita A. Jadhav",
     "url": "https://k11softwaresolutions.com"
@@ -13,6 +13,7 @@
     "performance-testing",
     "load-testing",
     "k6",
+    "jmeter",
     "slo",
     "latency",
     "regression",

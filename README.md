@@ -16,6 +16,7 @@ Most load-testing tools give you numbers. This one gives you **evidence**: per-e
 - **Regressions that mean something:** slower than the baseline by more than a tolerance **and** a minimum number of milliseconds **and** significant (one-sided Mann-Whitney U test).
 - **Guardrails:** no load on production-like environments, data-changing flows only where writes are allowed, caps on virtual users, duration and request rate, and an automatic stop when too many requests fail.
 - **Two engines:** [Grafana k6](https://k6.io) when it's installed, for heavy load; a builtin engine (Python, no install) for quick checks and CI.
+- **Already on JMeter?** Import your existing JMeter results (`.jtl`) and get the same SLO checks, regressions and Release Gate evidence, without rewriting a single test plan.
 
 ## Quick start
 
@@ -65,6 +66,18 @@ guardrails: { max_vus: 50, max_duration: 10m, max_rps: 200, abort_error_rate: 0.
 
 Each virtual user runs a flow's fixtures once, then repeats: pick a flow by weight, run its HTTP steps in order (IDs saved by one step feed the next), run its cleanup, think, repeat. Database checks are skipped under load; they check correctness, not speed, and still run in your functional tests.
 
+## Already using JMeter?
+
+Keep your test plans. Run them as usual, then import the results file:
+
+```bash
+jmeter -n -t checkout.jmx -l results.jtl                        # your existing JMeter run
+k11-performance-qa-mcp import results.jtl --env staging --save-baseline   # on main
+k11-performance-qa-mcp import results.jtl --env staging                   # on a branch: compare, report
+```
+
+CSV results (JMeter's default, with the header row) and XML results both work. Each sampler label becomes an endpoint, so name samplers like `GET /orders/{id}` to match your SLO patterns. Transaction Controller samples are skipped (they sum their children), connection failures count as errors, and 5xx responses are server errors. Since JMeter generated the load, k11's guardrails don't apply; the analysis, baseline comparison and report are exactly the same as for a k6 or builtin run.
+
 ## How a regression is decided
 
 For each endpoint, the run is compared with the saved baseline on the configured metric (p95 by default). It's a **regression** only when all of these hold:
@@ -96,6 +109,7 @@ A rise in the error rate of more than 1 percentage point is reported separately.
 | `perf_config` | Environments (and whether load is allowed, and why), scenarios and their flows, SLOs, guardrails, the engine that will run, saved baselines |
 | `run_load_test` | Run a scenario; returns the verdict, findings, per-endpoint latency and the baseline comparison; writes the report |
 | `save_baseline` | Save the last completed run (or a fresh run) as the baseline |
+| `import_jmeter_results` | Analyse a JMeter results file (CSV or XML) like a run: SLOs, baseline comparison, report |
 | `get_report` | The last report, or one endpoint's detail: percentiles, status codes, SLOs, comparison, error examples |
 | `init_perf_config` | Write a starter `.qa-mcp/perf.yaml` |
 
@@ -105,6 +119,7 @@ A rise in the error rate of more than 1 percentage point is reported separately.
 k11-performance-qa-mcp run      [--scenario S] [--env E] [--vus N] [--duration 2m] [--ramp-up 20s] [--max-rps N]
                                 [--engine auto|k6|builtin] [--no-compare] [--fail-on any|slo|regression|never]
 k11-performance-qa-mcp baseline [same options]  |  baseline --from-last-run
+k11-performance-qa-mcp import FILE.jtl [--scenario S] [--env E] [--save-baseline] [--no-compare] [--fail-on ...]
 k11-performance-qa-mcp init
 ```
 
@@ -127,7 +142,7 @@ In GitHub Actions it writes the Markdown report to the step summary and sets `ve
 | Fixtures and auth | yes | yes (prepared in Python, handed to k6) |
 | Database cleanup steps | yes | no; use a disposable test database |
 
-Keep the engine the same between a baseline and the runs compared with it; the report warns when they differ.
+Keep the engine the same between a baseline and the runs compared with it; the report warns when they differ. JMeter imports are a third source and compare best with JMeter baselines.
 
 ## Demo
 

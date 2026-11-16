@@ -5,13 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "k11-performance-qa-mcp"
 version = "0.1.0"
-description = "MCP server and CI tool for load and performance testing as release evidence: API flows as load scenarios, per-endpoint latency and SLOs, statistically significant regressions against a baseline, k6 or builtin engine, with guardrails."
+description = "MCP server and CI tool for load and performance testing as release evidence: API flows as load scenarios, per-endpoint latency and SLOs, statistically significant regressions against a baseline, k6 or builtin engine or imported JMeter results, with guardrails."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "K11 Software Solutions" }]
 requires-python = ">=3.10"
-keywords = ["mcp", "performance-testing", "load-testing", "k6", "slo", "latency", "regression", "qa", "claude"]
+keywords = ["mcp", "performance-testing", "load-testing", "k6", "jmeter", "slo", "latency", "regression", "qa", "claude"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",

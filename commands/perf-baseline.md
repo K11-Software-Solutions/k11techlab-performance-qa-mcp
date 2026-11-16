@@ -1,6 +1,6 @@
 ---
 description: Save a performance baseline from the current branch (use on main or a release you trust)
-argument-hint: [scenario] [environment]
+argument-hint: "[scenario] [environment]"
 ---
 
 Save the performance baseline that later runs are compared with, using the performance-qa MCP tools.

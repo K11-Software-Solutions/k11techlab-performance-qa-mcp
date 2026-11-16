@@ -95,7 +95,8 @@ def test_mcp_tools(project, shop):
     async def go():
         async with create_connected_server_and_client_session(create_server()._mcp_server) as c:
             tools = {t.name for t in (await c.list_tools()).tools}
-            assert tools == {"perf_config", "run_load_test", "save_baseline", "get_report", "init_perf_config"}
+            assert tools == {"perf_config", "run_load_test", "save_baseline", "get_report", "init_perf_config",
+                             "import_jmeter_results"}
             cfg = json.loads((await c.call_tool("perf_config", {})).content[0].text)
             assert cfg["environments"]["prod"]["load_allowed"] is False
             assert [f["file"] for f in cfg["scenarios"]["browse"]["flows"]] == ["tests/api/view_order.yaml",
