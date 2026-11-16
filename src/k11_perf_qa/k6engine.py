@@ -15,6 +15,7 @@ don't run (use a disposable test database, or the builtin engine).
 from __future__ import annotations
 
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -296,6 +297,19 @@ def run_k6(api_cfg: ApiConfig, perf: PerfConfig, flows: list[ScenarioFlow], env_
         shutil.rmtree(work, ignore_errors=True)
 
 
+_TS = re.compile(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(?:\.(\d+))?(Z|[+-]\d\d:?\d\d)?$")
+
+
+def _ts(value) -> datetime | None:
+    """k6 timestamps carry nanoseconds (and Python 3.10 accepts only 3 or 6 fraction digits)."""
+    m = _TS.match(str(value or "").strip())
+    if not m:
+        return None
+    tz = m.group(3) or "+00:00"
+    tz = "+00:00" if tz == "Z" else (tz if ":" in tz else f"{tz[:3]}:{tz[3:]}")
+    return datetime.fromisoformat(f"{m.group(1)}.{(m.group(2) or '0').ljust(6, '0')[:6]}{tz}")
+
+
 def _parse(raw: Path, res: RunResult) -> None:
     t0 = None
     with raw.open(encoding="utf8") as fh:
@@ -311,7 +325,7 @@ def _parse(raw: Path, res: RunResult) -> None:
             ep = tags.get("name")
             if not ep or ep == "cleanup":
                 continue
-            t = datetime.fromisoformat(str(d.get("time")).replace("Z", "+00:00")[:32]) if d.get("time") else None
+            t = _ts(d.get("time"))
             if t and t0 is None:
                 t0 = t
             sec = int((t - t0).total_seconds()) if (t and t0) else 0

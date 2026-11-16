@@ -122,3 +122,12 @@ def test_k6_script_has_no_secrets_and_tags_endpoints():
     js = build_script([ScenarioFlow("tests/api/x.yaml", flow)], "http://127.0.0.1:1", perfconfig.Profile.from_dict({}), perf)
     assert '"key": "GET /orders/{id}"' in js and "${ENV:SECRET_KEY}" in js  # resolved by k6 at run time
     assert "K11_PERF_AUTH" in js and "abortOnFail" in js
+
+
+def test_k6_timestamps_with_nanoseconds():
+    from k11_perf_qa.k6engine import _ts
+
+    a, b = _ts("2026-11-16T13:19:27.59090141+00:00"), _ts("2026-11-16T13:19:28.590901Z")
+    assert (b - a).total_seconds() == 1.0
+    assert _ts("2026-11-16T13:19:29.1-0700").utcoffset().total_seconds() == -7 * 3600
+    assert _ts("not a time") is None
